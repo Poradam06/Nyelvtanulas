@@ -5,31 +5,48 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="style.css">
     <title>Document</title>
-</head>
-<body>
-    <h1>Nyelvtanulás</h1>
-    <button id="start_gomb" title="start">start</button>
 
     <script src="szavak.js"></script>
     <script>
-    // Megjelenít 10 magyar szót egymás alá, majd a hozzájuk tartozó 10 angol szót egymás után.
-    (function(){
+    document.addEventListener('DOMContentLoaded', function() {
       const startBtn = document.getElementById('start_gomb');
-      const outerUl = document.querySelector('ul');
+      const container = document.getElementById('words_container');
+
+      let huBoxes = [], enBoxes = [], matches = [], selectedHu = null, selectedEn = null;
+      let successCount = 0, failCount = 0;
+      let successDiv, failDiv;
+
+      function resetState() {
+        huBoxes = [];
+        enBoxes = [];
+        matches = [];
+        selectedHu = null;
+        selectedEn = null;
+        successCount = 0;
+        failCount = 0;
+      }
+
+      function updateCounters() {
+        if (!successDiv) {
+          successDiv = document.createElement('div');
+          successDiv.style.marginTop = '20px';
+          successDiv.style.fontWeight = 'bold';
+        }
+        if (!failDiv) {
+          failDiv = document.createElement('div');
+          failDiv.style.fontWeight = 'bold';
+        }
+        successDiv.textContent = `Sikeres párosítások: ${successCount}`;
+        failDiv.textContent = `Sikertelen próbálkozások: ${failCount}`;
+        if (successDiv.parentNode !== container) container.appendChild(successDiv);
+        if (failDiv.parentNode !== container) container.appendChild(failDiv);
+      }
 
       function showWords(){
-        // Töröljük a listát, majd létrehozunk két külön listát: magyar és angol
-        outerUl.innerHTML = '';
-
-        const huHeading = document.createElement('h2');
-        huHeading.textContent = 'Magyar (10)';
-        const huList = document.createElement('ul');
-        huList.id = 'huList';
-
-        const enHeading = document.createElement('h2');
-        enHeading.textContent = 'Angol (10)';
-        const enList = document.createElement('ul');
-        enList.id = 'enList';
+        container.innerHTML = '';
+        resetState();
+        successDiv = null;
+        failDiv = null;
 
         // Válasszunk 10 egyedi véletlen indexet a words tömbből
         const total = Math.min(10, Array.isArray(words) ? words.length : 0);
@@ -38,32 +55,99 @@
           const i = Math.floor(Math.random() * words.length);
           if(!indices.includes(i)) indices.push(i);
         }
+        // Keverjük meg az angol szavakat külön, hogy ne legyenek páronként
+        const shuffledIndices = indices.slice().sort(() => Math.random() - 0.5);
 
-        // Magyar szavak egymás alá
-        indices.forEach(i => {
-          const li = document.createElement('li');
-          li.textContent = words[i].hu;
-          huList.appendChild(li);
+        // Magyar szavak boxokban (oszlop)
+        const huCol = document.createElement('div');
+        huCol.className = 'words-col';
+        const huLabel = document.createElement('div');
+        huLabel.className = 'words-label';
+        huLabel.textContent = 'Magyar szavak';
+        huCol.appendChild(huLabel);
+        indices.forEach((i, idx) => {
+          const box = document.createElement('div');
+          box.className = 'word-box';
+          box.textContent = words[i].hu;
+          box.dataset.idx = idx;
+          box.addEventListener('click', () => selectHu(idx, box));
+          huBoxes[idx] = box;
+          huCol.appendChild(box);
         });
 
-        // Angol szavak egymás után (szintén listában)
-        indices.forEach(i => {
-          const li = document.createElement('li');
-          li.textContent = words[i].en;
-          enList.appendChild(li);
+        // Angol szavak boxokban (oszlop, keverve)
+        const enCol = document.createElement('div');
+        enCol.className = 'words-col';
+        const enLabel = document.createElement('div');
+        enLabel.className = 'words-label';
+        enLabel.textContent = 'Angol jelentések';
+        enCol.appendChild(enLabel);
+        shuffledIndices.forEach((i, idx) => {
+          const box = document.createElement('div');
+          box.className = 'word-box';
+          box.textContent = words[i].en;
+          box.dataset.idx = indices.indexOf(i); // az eredeti magyar indexe
+          box.addEventListener('click', () => selectEn(box.dataset.idx, box));
+          enBoxes[idx] = box;
+          enCol.appendChild(box);
         });
 
-        outerUl.appendChild(huHeading);
-        outerUl.appendChild(huList);
-        outerUl.appendChild(enHeading);
-        outerUl.appendChild(enList);
+        // Két oszlop egymás mellett
+        const table = document.createElement('div');
+        table.className = 'words-table';
+        table.appendChild(huCol);
+        table.appendChild(enCol);
+        container.appendChild(table);
+        updateCounters();
+      }
+
+      function selectHu(idx, box) {
+        if (box.classList.contains('matched')) return;
+        if (selectedHu) selectedHu.classList.remove('selected');
+        selectedHu = box;
+        box.classList.add('selected');
+        checkMatch();
+      }
+      function selectEn(idx, box) {
+        if (box.classList.contains('matched')) return;
+        if (selectedEn) selectedEn.classList.remove('selected');
+        selectedEn = box;
+        box.classList.add('selected');
+        checkMatch();
+      }
+      function checkMatch() {
+        if (selectedHu && selectedEn) {
+          if (selectedHu.dataset.idx === selectedEn.dataset.idx) {
+            selectedHu.classList.add('matched');
+            selectedEn.classList.add('matched');
+            selectedHu.classList.remove('selected');
+            selectedEn.classList.remove('selected');
+            selectedHu = null;
+            selectedEn = null;
+            successCount++;
+            updateCounters();
+          } else {
+            selectedHu.classList.add('incorrect');
+            selectedEn.classList.add('incorrect');
+            failCount++;
+            updateCounters();
+            setTimeout(() => {
+              selectedHu.classList.remove('incorrect', 'selected');
+              selectedEn.classList.remove('incorrect', 'selected');
+              selectedHu = null;
+              selectedEn = null;
+            }, 900);
+          }
+        }
       }
 
       startBtn.addEventListener('click', showWords);
-
-      // Opció: automatikusan mutasson szavakat az oldal betöltésekor is
-      // showWords();
-    })();
+    });
     </script>
+</head>
+<body>
+    <h1 align="center">Nyelvtanulás</h1>
+    <button id="start_gomb" title="start">start</button>
+    <div id="words_container"></div>
 </body>
 </html>

@@ -6,4 +6,49 @@
     border: none;
     padding: 10px 20px;
     cursor: pointer;
+    display: block;
+    margin: 30px auto 0 auto;
 }
+  .words-table {
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+        align-items: flex-start;
+        gap: 60px; /* nagyobb távolság a két oszlop között */
+        margin-top: 30px;
+      }
+      .words-col {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .word-box {
+        padding: 8px 14px;
+        border: 2px solid #888;
+        border-radius: 8px;
+        background: #f9f9f9;
+        cursor: pointer;
+        transition: background 0.2s, border 0.2s;
+        user-select: none;
+        font-size: 1.1em;
+        min-width: 80px;
+        text-align: center;
+      }
+      .word-box.selected {
+        background: #d0eaff;
+        border-color: #2196f3;
+      }
+      .word-box.matched {
+        background: #c8e6c9;
+        border-color: #388e3c;
+        cursor: default;
+      }
+      .word-box.incorrect {
+        background: #ffcdd2;
+        border-color: #d32f2f;
+      }
+      .words-label {
+        text-align: center;
+        font-weight: bold;
+        margin-bottom: 8px;
+      }
