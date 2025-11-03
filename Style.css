@@ -1,0 +1,9 @@
+#start_gomb
+{
+    align-items: center;
+    font-size: 20px;
+    background-color: lightblue;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+}
