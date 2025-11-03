@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>Document</title>
+</head>
+<body>
+    <h1>Nyelvtanulás</h1>
+    <button id="start_gomb" title="start">start</button>
+
+    <script src="szavak.js"></script>
+    <script>
+    // Megjelenít 10 magyar szót egymás alá, majd a hozzájuk tartozó 10 angol szót egymás után.
+    (function(){
+      const startBtn = document.getElementById('start_gomb');
+      const outerUl = document.querySelector('ul');
+
+      function showWords(){
+        // Töröljük a listát, majd létrehozunk két külön listát: magyar és angol
+        outerUl.innerHTML = '';
+
+        const huHeading = document.createElement('h2');
+        huHeading.textContent = 'Magyar (10)';
+        const huList = document.createElement('ul');
+        huList.id = 'huList';
+
+        const enHeading = document.createElement('h2');
+        enHeading.textContent = 'Angol (10)';
+        const enList = document.createElement('ul');
+        enList.id = 'enList';
+
+        // Válasszunk 10 egyedi véletlen indexet a words tömbből
+        const total = Math.min(10, Array.isArray(words) ? words.length : 0);
+        const indices = [];
+        while(indices.length < total){
+          const i = Math.floor(Math.random() * words.length);
+          if(!indices.includes(i)) indices.push(i);
+        }
+
+        // Magyar szavak egymás alá
+        indices.forEach(i => {
+          const li = document.createElement('li');
+          li.textContent = words[i].hu;
+          huList.appendChild(li);
+        });
+
+        // Angol szavak egymás után (szintén listában)
+        indices.forEach(i => {
+          const li = document.createElement('li');
+          li.textContent = words[i].en;
+          enList.appendChild(li);
+        });
+
+        outerUl.appendChild(huHeading);
+        outerUl.appendChild(huList);
+        outerUl.appendChild(enHeading);
+        outerUl.appendChild(enList);
+      }
+
+      startBtn.addEventListener('click', showWords);
+
+      // Opció: automatikusan mutasson szavakat az oldal betöltésekor is
+      // showWords();
+    })();
+    </script>
+</body>
+</html>
