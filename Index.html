@@ -14,7 +14,7 @@
 
       let huBoxes = [], enBoxes = [], matches = [], selectedHu = null, selectedEn = null;
       let successCount = 0, failCount = 0;
-      let successDiv, failDiv;
+      let successDiv, failDiv, counterWrapper;
 
       function resetState() {
         huBoxes = [];
@@ -27,9 +27,16 @@
       }
 
       function updateCounters() {
+        if (!counterWrapper) {
+          counterWrapper = document.createElement('div');
+          counterWrapper.style.display = 'flex';
+          counterWrapper.style.flexDirection = 'column';
+          counterWrapper.style.alignItems = 'center';
+          counterWrapper.style.justifyContent = 'center';
+          counterWrapper.style.margin = '25px 0 0 0';
+        }
         if (!successDiv) {
           successDiv = document.createElement('div');
-          successDiv.style.marginTop = '20px';
           successDiv.style.fontWeight = 'bold';
         }
         if (!failDiv) {
@@ -38,8 +45,9 @@
         }
         successDiv.textContent = `Sikeres párosítások: ${successCount}`;
         failDiv.textContent = `Sikertelen próbálkozások: ${failCount}`;
-        if (successDiv.parentNode !== container) container.appendChild(successDiv);
-        if (failDiv.parentNode !== container) container.appendChild(failDiv);
+        if (!counterWrapper.contains(successDiv)) counterWrapper.appendChild(successDiv);
+        if (!counterWrapper.contains(failDiv)) counterWrapper.appendChild(failDiv);
+        if (counterWrapper.parentNode !== container) container.appendChild(counterWrapper);
       }
 
       function showWords(){
@@ -47,6 +55,7 @@
         resetState();
         successDiv = null;
         failDiv = null;
+        counterWrapper = null;
 
         // Válasszunk 10 egyedi véletlen indexet a words tömbből
         const total = Math.min(10, Array.isArray(words) ? words.length : 0);
