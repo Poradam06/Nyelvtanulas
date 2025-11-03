@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="style.css">
     <title>Document</title>
+
     <script src="szavak.js"></script>
     <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -12,6 +13,8 @@
       const container = document.getElementById('words_container');
 
       let huBoxes = [], enBoxes = [], matches = [], selectedHu = null, selectedEn = null;
+      let successCount = 0, failCount = 0;
+      let successDiv, failDiv;
 
       function resetState() {
         huBoxes = [];
@@ -19,11 +22,31 @@
         matches = [];
         selectedHu = null;
         selectedEn = null;
+        successCount = 0;
+        failCount = 0;
+      }
+
+      function updateCounters() {
+        if (!successDiv) {
+          successDiv = document.createElement('div');
+          successDiv.style.marginTop = '20px';
+          successDiv.style.fontWeight = 'bold';
+        }
+        if (!failDiv) {
+          failDiv = document.createElement('div');
+          failDiv.style.fontWeight = 'bold';
+        }
+        successDiv.textContent = `Sikeres párosítások: ${successCount}`;
+        failDiv.textContent = `Sikertelen próbálkozások: ${failCount}`;
+        if (successDiv.parentNode !== container) container.appendChild(successDiv);
+        if (failDiv.parentNode !== container) container.appendChild(failDiv);
       }
 
       function showWords(){
         container.innerHTML = '';
         resetState();
+        successDiv = null;
+        failDiv = null;
 
         // Válasszunk 10 egyedi véletlen indexet a words tömbből
         const total = Math.min(10, Array.isArray(words) ? words.length : 0);
@@ -32,12 +55,16 @@
           const i = Math.floor(Math.random() * words.length);
           if(!indices.includes(i)) indices.push(i);
         }
-        // Keverjük meg az angol szavakat külön, hogy ne legyenek páronként egymás alatt
+        // Keverjük meg az angol szavakat külön, hogy ne legyenek páronként
         const shuffledIndices = indices.slice().sort(() => Math.random() - 0.5);
 
-        // Magyar szavak boxokban
-        const huRow = document.createElement('div');
-        huRow.className = 'words-row';
+        // Magyar szavak boxokban (oszlop)
+        const huCol = document.createElement('div');
+        huCol.className = 'words-col';
+        const huLabel = document.createElement('div');
+        huLabel.className = 'words-label';
+        huLabel.textContent = 'Magyar szavak';
+        huCol.appendChild(huLabel);
         indices.forEach((i, idx) => {
           const box = document.createElement('div');
           box.className = 'word-box';
@@ -45,12 +72,16 @@
           box.dataset.idx = idx;
           box.addEventListener('click', () => selectHu(idx, box));
           huBoxes[idx] = box;
-          huRow.appendChild(box);
+          huCol.appendChild(box);
         });
 
-        // Angol szavak boxokban, keverve
-        const enRow = document.createElement('div');
-        enRow.className = 'words-row';
+        // Angol szavak boxokban (oszlop, keverve)
+        const enCol = document.createElement('div');
+        enCol.className = 'words-col';
+        const enLabel = document.createElement('div');
+        enLabel.className = 'words-label';
+        enLabel.textContent = 'Angol jelentések';
+        enCol.appendChild(enLabel);
         shuffledIndices.forEach((i, idx) => {
           const box = document.createElement('div');
           box.className = 'word-box';
@@ -58,19 +89,16 @@
           box.dataset.idx = indices.indexOf(i); // az eredeti magyar indexe
           box.addEventListener('click', () => selectEn(box.dataset.idx, box));
           enBoxes[idx] = box;
-          enRow.appendChild(box);
+          enCol.appendChild(box);
         });
 
-        // Címkék
-        const huHeading = document.createElement('h2');
-        huHeading.textContent = 'Magyar szavak';
-        const enHeading = document.createElement('h2');
-        enHeading.textContent = 'Angol jelentések';
-
-        container.appendChild(huHeading);
-        container.appendChild(huRow);
-        container.appendChild(enHeading);
-        container.appendChild(enRow);
+        // Két oszlop egymás mellett
+        const table = document.createElement('div');
+        table.className = 'words-table';
+        table.appendChild(huCol);
+        table.appendChild(enCol);
+        container.appendChild(table);
+        updateCounters();
       }
 
       function selectHu(idx, box) {
@@ -89,7 +117,6 @@
       }
       function checkMatch() {
         if (selectedHu && selectedEn) {
-          // Ha a magyar és angol index megegyezik, helyes a párosítás
           if (selectedHu.dataset.idx === selectedEn.dataset.idx) {
             selectedHu.classList.add('matched');
             selectedEn.classList.add('matched');
@@ -97,9 +124,13 @@
             selectedEn.classList.remove('selected');
             selectedHu = null;
             selectedEn = null;
+            successCount++;
+            updateCounters();
           } else {
             selectedHu.classList.add('incorrect');
             selectedEn.classList.add('incorrect');
+            failCount++;
+            updateCounters();
             setTimeout(() => {
               selectedHu.classList.remove('incorrect', 'selected');
               selectedEn.classList.remove('incorrect', 'selected');
@@ -115,7 +146,7 @@
     </script>
 </head>
 <body>
-    <h1>Nyelvtanulás</h1>
+    <h1 align="center">Nyelvtanulás</h1>
     <button id="start_gomb" title="start">start</button>
     <div id="words_container"></div>
 </body>
